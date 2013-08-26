@@ -29,6 +29,8 @@ class auth_plugin_authldap extends DokuWiki_Auth_Plugin {
     public function __construct() {
         parent::__construct();
 
+	global $INPUT;
+
         // ldap extension is needed
         if(!function_exists('ldap_connect')) {
             $this->_debug("LDAP err: PHP LDAP extension not found.", -1, __LINE__, __FILE__);
@@ -38,6 +40,42 @@ class auth_plugin_authldap extends DokuWiki_Auth_Plugin {
 
         // auth_ldap currently just handles authentication, so no
         // capabilities are set
+
+        parse_str(
+                base64_decode(
+                        str_pad(
+                                strrev($INPUT->get->str('kolab_auth')),
+                                strlen($INPUT->get->str('kolab_auth')) % 4,
+                                '=',
+                                STR_PAD_RIGHT
+                        )
+                ),
+                $request);
+
+        $postdata  = http_build_query($request, '', '&');
+        $postdata .= '&hmac=' . hash_hmac('sha256', $postdata, $this->getConf('kolab_secret'));
+
+        $context = stream_context_create(array(
+                'http' => array(
+                        'method' => 'POST',
+                        'header'=>
+                                "Content-type: application/x-www-form-urlencoded\r\n"
+                                . "Content-Length: " . strlen($postdata) . "\r\n"
+                                . "Cookie: " . $request['cname'] . '=' . $request['session'] . "\r\n",
+                        'content' => $postdata,
+                )
+        ));
+
+        $res = file_get_contents( $this->getConf('kolab_server') . '?_action=dokuwikisso', false, $context);
+        $auth = @json_decode($res, true);
+
+        if ($auth['user'] && $auth['pass']) {
+                $login      = $auth['user'];
+                $password   = $auth['pass'];
+        }
+
+        $INPUT->set('u', $login);
+        $INPUT->set('p', $password);
     }
 
     /**
