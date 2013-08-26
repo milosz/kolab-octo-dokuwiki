@@ -1,0 +1,14 @@
+/***** ownCloud plugin styles *****/
+
+#taskbar a.button-dokuwiki span.button-inner
+{
+  background: url(dokuwiki.png) 5px 5px no-repeat;
+  height: 14px;
+}
+
+#taskbar a.button-dokuwiki:hover span.button-inner,                                                                                                                      
+#taskbar a.button-dokuwiki.button-selected span.button-inner
+{
+  background: url(dokuwiki.png) 5px -16px no-repeat;
+  height: 14px;
+}
