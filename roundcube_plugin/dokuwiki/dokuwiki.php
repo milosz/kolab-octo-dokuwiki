@@ -95,7 +95,7 @@ class dokuwiki extends rcube_plugin
         $this->load_config();
 
         // send logout request to dokuwiki
-        $logout_url = $rcmail->config->get('dokuwiki_url') . '/backend.php?op=logout';
+        $logout_url = $rcmail->config->get('dokuwiki_url') . '?do=logout';
         $rcmail->output->add_script("new Image().src = '$logout_url';", 'foot');
     }
 
